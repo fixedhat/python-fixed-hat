@@ -1,12 +1,12 @@
+from math import exp
 from sense_hat import SenseHat
-import numpy as np
 
 class FixedHat(SenseHat):
 
 
-    RPI_CPU_THERMAL_ZONE = '/sys/class/thermal/thermal_zone0/temp' 		
+    RPI_CPU_THERMAL_ZONE = '/sys/class/thermal/thermal_zone0/temp'
     WATER_MOLAR_MASS = 18 # [g/mol]
-    GAS_CONSTANT = 0.0623665 # [mmHg * m^3 * K^-1 * mol^-1]
+    GAS_CONSTANT = 8.3144598e-3 # [hPa * m^3 * K^-1 * mol^-1]
 
 
     def __init__(self, temp_cpu_factor=1.5):
@@ -20,9 +20,9 @@ class FixedHat(SenseHat):
 	
         temp_kelvin = self._to_kelvin(temp)
 
-        # Saturation vapor pressure [mmHg] according to August-Roche-Magnus 
-        # formula, temp in Celsius
-        psat = (0.61078 * 7.501) * np.exp((17.2694 * temp) / (238.3 + temp))
+        # Alduchov, O. and R. Eskridge, 1996:
+        # Improved Magnus Form Approximation of Saturation Vapor Pressure
+        psat = 6.1094 * exp(17.625 * temp / (243.04 + temp)) # [hPa]
         return self.WATER_MOLAR_MASS / (self.GAS_CONSTANT * temp_kelvin) * psat
 
     def _to_kelvin(self, T):
@@ -50,7 +50,7 @@ class FixedHat(SenseHat):
     	"""
 	
         relative_humidity = super(FixedHat, self).get_humidity()
-    	temp_humidity = super(FixedHat, self).get_temperature_from_humidity()	
+    	temp_humidity = super(FixedHat, self).get_temperature_from_humidity()
     	sat_vapor_density = self._sat_vapor_density(temp_humidity)
     	return relative_humidity * 0.01 * sat_vapor_density
 
