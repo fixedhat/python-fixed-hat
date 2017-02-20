@@ -32,6 +32,9 @@ class FixedHat(SenseHat):
 
 	return T + 273.15
 
+    def get_temperature_from_cpu(self):
+        return int(open(self.RPI_CPU_THERMAL_ZONE).read()) / 1e3
+
     def get_temperature_from_humidity(self):
         """
         Returns the temperature in Celsius accounting for the influence 
@@ -39,7 +42,7 @@ class FixedHat(SenseHat):
         """
 
         temp_humidity = super(FixedHat, self).get_temperature_from_humidity()
-        temp_cpu = int(open(self.RPI_CPU_THERMAL_ZONE).read()) / 1e3
+        temp_cpu = self.get_temperature_from_cpu()
         temp_increase_cpu = (temp_cpu - temp_humidity) / self._temp_cpu_factor
         return temp_humidity - temp_increase_cpu
 
